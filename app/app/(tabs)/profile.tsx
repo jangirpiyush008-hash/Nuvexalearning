@@ -17,7 +17,7 @@ import { Image } from "expo-image";
 import { useRouter } from "expo-router";
 
 export default function Profile() {
-  const { user, signOut, isDemo } = useAuth();
+  const { user, signOut } = useAuth();
   const { theme } = useTheme();
   const router = useRouter();
 
@@ -61,7 +61,6 @@ export default function Profile() {
               {display}
             </Text>
             <View style={{ flexDirection: "row", marginTop: Spacing.sm, gap: 6 }}>
-              {isDemo ? <GradientChip label="DEMO_MODE" variant="outline" /> : null}
               <GradientChip label="LEARNER" variant="outline" />
             </View>
           </View>
@@ -71,11 +70,11 @@ export default function Profile() {
           <TerminalLabel color={theme.textMuted}>STATS</TerminalLabel>
           <NuvexaCard style={{ marginTop: Spacing.sm }}>
             <View style={styles.statRow}>
-              <Stat label="COURSES" value={isDemo ? "3" : "0"} />
+              <Stat label="COURSES" value="0" />
               <View style={[styles.statDivider, { backgroundColor: theme.border }]} />
-              <Stat label="VOICES" value={isDemo ? "1" : "0"} />
+              <Stat label="VOICES" value="0" />
               <View style={[styles.statDivider, { backgroundColor: theme.border }]} />
-              <Stat label="CREDITS" value={isDemo ? "₹200" : "₹0"} accent />
+              <Stat label="CREDITS" value="₹0" accent />
             </View>
           </NuvexaCard>
         </View>

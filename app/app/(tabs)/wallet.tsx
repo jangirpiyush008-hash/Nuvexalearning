@@ -11,29 +11,23 @@ import {
 } from "@/designSystem";
 import { useAuth } from "@/features/auth/AuthProvider";
 import { fetchMyWallet } from "@/core/supabase/queries";
-import { DEMO_WALLET } from "@/core/demoData";
 import { useTheme } from "@/themes/ThemeProvider";
 import { ThemeOverlay } from "@/themes/ThemeOverlay";
 import type { CreditsWallet } from "@/core/models";
 
 export default function Wallet() {
-  const { user, isDemo } = useAuth();
+  const { user } = useAuth();
   const { theme } = useTheme();
   const [wallet, setWallet] = useState<CreditsWallet | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     if (!user) return;
-    if (isDemo) {
-      setWallet(DEMO_WALLET);
-      setLoading(false);
-      return;
-    }
     fetchMyWallet(user.id)
-      .then((w) => setWallet(w ?? DEMO_WALLET))
-      .catch(() => setWallet(DEMO_WALLET))
+      .then((w) => setWallet(w ?? null))
+      .catch(() => setWallet(null))
       .finally(() => setLoading(false));
-  }, [user, isDemo]);
+  }, [user]);
 
   return (
     <SafeAreaView style={[styles.root, { backgroundColor: theme.surface }]}>

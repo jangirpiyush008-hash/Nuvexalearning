@@ -23,7 +23,6 @@ import {
   Typography,
 } from "@/designSystem";
 import { fetchPublishedCourses } from "@/core/supabase/queries";
-import { DEMO_COURSES } from "@/core/demoData";
 import { resolveThumbnail } from "@/core/thumbnails";
 import { useAuth } from "@/features/auth/AuthProvider";
 import { useTheme } from "@/themes/ThemeProvider";
@@ -59,7 +58,7 @@ const WINS = [
 
 export default function Home() {
   const router = useRouter();
-  const { isDemo, user } = useAuth();
+  const { user } = useAuth();
   const { theme } = useTheme();
   const [courses, setCourses] = useState<Course[]>([]);
   const [loading, setLoading] = useState(true);
@@ -71,19 +70,13 @@ export default function Home() {
   const [streak, setStreak] = useState(7);
 
   const load = async () => {
-    if (isDemo) {
-      setCourses(DEMO_COURSES);
-      setLoading(false);
-      setRefreshing(false);
-      return;
-    }
     try {
       setError(null);
       const data = await fetchPublishedCourses();
-      setCourses(data.length ? data : DEMO_COURSES);
+      setCourses(data);
     } catch (e: unknown) {
       setError(e instanceof Error ? e.message : String(e));
-      setCourses(DEMO_COURSES);
+      setCourses([]);
     } finally {
       setLoading(false);
       setRefreshing(false);

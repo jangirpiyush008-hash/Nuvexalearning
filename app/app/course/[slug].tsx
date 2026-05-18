@@ -24,15 +24,12 @@ import {
   Typography,
 } from "@/designSystem";
 import { fetchCourseBySlug, fetchLessonsForCourse } from "@/core/supabase/queries";
-import { DEMO_COURSES, DEMO_LESSONS } from "@/core/demoData";
-import { useAuth } from "@/features/auth/AuthProvider";
 import { useTheme } from "@/themes/ThemeProvider";
 import type { Course, Lesson } from "@/core/models";
 
 export default function CourseDetail() {
   const { slug } = useLocalSearchParams<{ slug: string }>();
   const router = useRouter();
-  const { isDemo } = useAuth();
   const { theme } = useTheme();
   const [course, setCourse] = useState<Course | null>(null);
   const [lessons, setLessons] = useState<Lesson[]>([]);
@@ -40,43 +37,24 @@ export default function CourseDetail() {
 
   useEffect(() => {
     if (!slug) return;
-    if (isDemo) {
-      const c = DEMO_COURSES.find((x) => x.slug === slug) ?? null;
-      setCourse(c);
-      setLessons(c ? DEMO_LESSONS[c.slug] ?? [] : []);
-      setLoading(false);
-      return;
-    }
     (async () => {
       try {
         const c = await fetchCourseBySlug(slug);
         if (!c) {
-          const demo = DEMO_COURSES.find((x) => x.slug === slug) ?? null;
-          if (demo) {
-            setCourse(demo);
-            setLessons(DEMO_LESSONS[demo.slug] ?? []);
-          } else {
-            Alert.alert("Not found", "Course missing.");
-            router.back();
-          }
+          Alert.alert("Not found", "Course missing.");
+          router.back();
           return;
         }
         setCourse(c);
         const ls = await fetchLessonsForCourse(c.id);
         setLessons(ls);
       } catch (e: unknown) {
-        const demo = DEMO_COURSES.find((x) => x.slug === slug) ?? null;
-        if (demo) {
-          setCourse(demo);
-          setLessons(DEMO_LESSONS[demo.slug] ?? []);
-        } else {
-          Alert.alert("Failed", e instanceof Error ? e.message : String(e));
-        }
+        Alert.alert("Failed", e instanceof Error ? e.message : String(e));
       } finally {
         setLoading(false);
       }
     })();
-  }, [slug, router, isDemo]);
+  }, [slug, router]);
 
   if (loading) {
     return (

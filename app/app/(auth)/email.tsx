@@ -4,7 +4,6 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { useRouter } from "expo-router";
 import { NuvexaButton, Spacing, TerminalLabel, Typography } from "@/designSystem";
 import { supabase, supabaseConfigured } from "@/core/supabase/client";
-import { DEMO_EMAIL, DEMO_PASSWORD, useAuth } from "@/features/auth/AuthProvider";
 import { useTheme } from "@/themes/ThemeProvider";
 import { ThemeOverlay } from "@/themes/ThemeOverlay";
 
@@ -18,18 +17,14 @@ export default function EmailAuth() {
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const [focusedField, setFocusedField] = useState<null | "email" | "password">(null);
-  const { signInDemo } = useAuth();
 
   const submit = async () => {
     if (!email || !password) return Alert.alert("Missing fields", "Enter both email and password");
-    if (email.trim().toLowerCase() === DEMO_EMAIL && password === DEMO_PASSWORD) {
-      // Demo first-run also routes through theme picker
-      router.push("/(auth)/theme");
-      setTimeout(() => signInDemo(), 50);
-      return;
-    }
     if (!supabaseConfigured) {
-      Alert.alert("Demo mode only", `Supabase isn't configured. Use the demo creds:\n\n${DEMO_EMAIL}\n${DEMO_PASSWORD}`);
+      Alert.alert(
+        "Auth not configured",
+        "Set EXPO_PUBLIC_SUPABASE_URL + ANON_KEY in app/.env.local to enable sign-in.",
+      );
       return;
     }
     setLoading(true);
@@ -38,22 +33,15 @@ export default function EmailAuth() {
       const { error } = await fn({ email, password });
       if (error) throw error;
       if (mode === "signup") {
-        // First-run users pick a theme before landing in the app
         Alert.alert("Check your inbox", "We sent a confirmation link.", [
           { text: "OK", onPress: () => router.push("/(auth)/theme") },
         ]);
       }
-      // sign-in goes straight to tabs via RootGate
     } catch (e: unknown) {
       Alert.alert("Failed", e instanceof Error ? e.message : String(e));
     } finally {
       setLoading(false);
     }
-  };
-
-  const fillDemo = () => {
-    setEmail(DEMO_EMAIL);
-    setPassword(DEMO_PASSWORD);
   };
 
   return (
@@ -86,7 +74,6 @@ export default function EmailAuth() {
             {mode === "signin" ? "Pick up where you left off." : "Start your first 60-second trial."}
           </Text>
 
-          {/* Toggle pill */}
           <View
             style={[
               styles.toggle,
@@ -106,9 +93,7 @@ export default function EmailAuth() {
                   onPress={() => setMode(m)}
                   style={[
                     styles.toggleBtn,
-                    {
-                      borderRadius: theme.btnRadius === 0 ? 0 : 999,
-                    },
+                    { borderRadius: theme.btnRadius === 0 ? 0 : 999 },
                     active && {
                       backgroundColor: theme.primary,
                       shadowColor: theme.primary,
@@ -131,7 +116,6 @@ export default function EmailAuth() {
             })}
           </View>
 
-          {/* Email */}
           <View style={styles.fieldGroup}>
             <Text style={[Typography.terminal, { color: theme.textMuted, marginBottom: 6, fontSize: 10 }]}>
               $ EMAIL
@@ -205,8 +189,6 @@ export default function EmailAuth() {
             onPress={submit}
             loading={loading}
           />
-          <View style={{ height: Spacing.sm }} />
-          <NuvexaButton label="Fill demo credentials" variant="ghost" onPress={fillDemo} />
         </View>
       </SafeAreaView>
     </View>

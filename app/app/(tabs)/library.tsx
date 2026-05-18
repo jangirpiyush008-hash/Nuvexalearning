@@ -13,7 +13,6 @@ import {
   TerminalLabel,
   Typography,
 } from "@/designSystem";
-import { DEMO_COURSES } from "@/core/demoData";
 import { useAuth } from "@/features/auth/AuthProvider";
 import { useTheme } from "@/themes/ThemeProvider";
 import { ThemeOverlay } from "@/themes/ThemeOverlay";
@@ -24,13 +23,12 @@ type Tab = "courses" | "tree" | "cards";
 
 export default function Library() {
   const router = useRouter();
-  const { isDemo } = useAuth();
+  useAuth();
   const { theme } = useTheme();
   const [tab, setTab] = useState<Tab>("courses");
 
-  const enrolled = isDemo
-    ? DEMO_COURSES.map((c, i) => ({ course: c, pct: [42, 18, 75][i] ?? 0 }))
-    : [];
+  // TODO: fetch real enrollments via supabase queries
+  const enrolled: Array<{ course: any; pct: number }> = [];
 
   return (
     <SafeAreaView style={[styles.root, { backgroundColor: theme.surface }]}>

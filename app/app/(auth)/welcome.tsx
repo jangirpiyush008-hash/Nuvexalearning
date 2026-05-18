@@ -1,30 +1,67 @@
-import React from "react";
-import { View, Text, StyleSheet, Dimensions, Pressable } from "react-native";
+import React, { useState } from "react";
+import { View, Text, StyleSheet, Dimensions, Alert, Platform } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useRouter } from "expo-router";
+import * as WebBrowser from "expo-web-browser";
+import * as Linking from "expo-linking";
 import { NeonN, NuvexaButton, Spacing, TerminalLabel, Typography } from "@/designSystem";
-import { useAuth, DEMO_EMAIL, DEMO_PASSWORD } from "@/features/auth/AuthProvider";
+import { supabase, supabaseConfigured } from "@/core/supabase/client";
 import { useTheme } from "@/themes/ThemeProvider";
 import { ThemeOverlay } from "@/themes/ThemeOverlay";
 
 const { width } = Dimensions.get("window");
 
+// Required for the OAuth web-browser to complete the redirect flow.
+WebBrowser.maybeCompleteAuthSession();
+
 export default function Welcome() {
   const router = useRouter();
-  const { signInDemo } = useAuth();
   const { theme } = useTheme();
+  const [loading, setLoading] = useState(false);
 
-  // Demo first-run → theme picker. signInDemo sets the session immediately,
-  // so we route forward before the auth gate redirects to /(tabs)/home.
-  const onDemo = () => {
-    router.push("/(auth)/theme");
-    setTimeout(() => signInDemo(), 50);
+  const signInWithGoogle = async () => {
+    if (!supabaseConfigured) {
+      Alert.alert("Auth not configured", "Set EXPO_PUBLIC_SUPABASE_URL + ANON_KEY in app/.env.local");
+      return;
+    }
+    setLoading(true);
+    try {
+      const redirectTo = Linking.createURL("auth/callback");
+      const { data, error } = await supabase.auth.signInWithOAuth({
+        provider: "google",
+        options: {
+          redirectTo,
+          skipBrowserRedirect: true,
+        },
+      });
+      if (error) throw error;
+      if (!data?.url) throw new Error("No OAuth URL returned by Supabase.");
+
+      const result = await WebBrowser.openAuthSessionAsync(data.url, redirectTo);
+      if (result.type !== "success" || !result.url) return;
+
+      // Pull tokens out of the redirect URL and hand to Supabase.
+      const url = new URL(result.url);
+      const params = new URLSearchParams(url.hash.replace(/^#/, "") || url.search);
+      const access_token = params.get("access_token");
+      const refresh_token = params.get("refresh_token");
+      if (access_token && refresh_token) {
+        const { error: setErr } = await supabase.auth.setSession({ access_token, refresh_token });
+        if (setErr) throw setErr;
+        // First-run: route to theme picker; RootGate will land us in tabs after.
+        router.push("/(auth)/theme");
+      }
+    } catch (e: unknown) {
+      Alert.alert("Google sign-in failed", e instanceof Error ? e.message : String(e));
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
     <View style={[styles.root, { backgroundColor: theme.surface }]}>
       <ThemeOverlay />
-      {/* corner neon bleeds */}
+
       <View
         style={[
           styles.bleed,
@@ -44,7 +81,8 @@ export default function Welcome() {
         <View style={styles.hero}>
           <NeonN size={88} />
           <Text style={[styles.wordmark, { color: theme.text }]}>
-            nuvexa<Text style={{ color: theme.textMuted, fontWeight: "500" }}>.studio</Text>
+            nuvexa
+            <Text style={{ color: theme.textMuted, fontWeight: "500" }}>.studio</Text>
           </Text>
 
           <View style={styles.terminalRow}>
@@ -70,39 +108,24 @@ export default function Welcome() {
         </View>
 
         <View style={styles.actions}>
-          <NuvexaButton label="Get started" onPress={() => router.push("/(auth)/email")} />
+          <NuvexaButton
+            label={loading ? "Opening Google…" : "Continue with Google"}
+            onPress={signInWithGoogle}
+            loading={loading}
+          />
           <View style={{ height: Spacing.md }} />
-          <NuvexaButton label="Try demo · no signup" variant="secondary" onPress={onDemo} />
+          <NuvexaButton
+            label="Continue with email"
+            variant="secondary"
+            onPress={() => router.push("/(auth)/email")}
+          />
 
-          <View
+          <Text
             style={[
-              styles.demoStrip,
-              {
-                borderColor: theme.border,
-                backgroundColor: theme.surfaceCard,
-                borderRadius: theme.btnRadius,
-              },
+              Typography.caption,
+              { color: theme.textMuted, textAlign: "center", marginTop: Spacing.md },
             ]}
           >
-            <Text
-              style={[
-                Typography.terminal,
-                {
-                  color: theme.primary,
-                  textShadowColor: theme.primary,
-                  textShadowOffset: { width: 0, height: 0 },
-                  textShadowRadius: 6,
-                },
-              ]}
-            >
-              $ DEMO_CREDS
-            </Text>
-            <Text style={[Typography.mono, { color: theme.textSubtle, fontSize: 11 }]}>
-              {DEMO_EMAIL} · {DEMO_PASSWORD}
-            </Text>
-          </View>
-
-          <Text style={[Typography.caption, { color: theme.textMuted, textAlign: "center", marginTop: Spacing.md }]}>
             By continuing you agree to the Terms · Privacy Policy
           </Text>
         </View>
@@ -137,35 +160,6 @@ const styles = StyleSheet.create({
     paddingHorizontal: Spacing.lg,
   },
   actions: { paddingBottom: Spacing.xl },
-  themePill: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "center",
-    paddingVertical: 10,
-    paddingHorizontal: Spacing.md,
-    borderRadius: 999,
-    borderWidth: 1,
-    marginBottom: Spacing.md,
-    gap: Spacing.sm,
-  },
-  themeDot: {
-    width: 10,
-    height: 10,
-    borderRadius: 5,
-    shadowOpacity: 0.6,
-    shadowRadius: 6,
-    shadowOffset: { width: 0, height: 0 },
-  },
-  demoStrip: {
-    marginTop: Spacing.lg,
-    borderWidth: 1,
-    paddingVertical: Spacing.sm,
-    paddingHorizontal: Spacing.md,
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "center",
-    gap: Spacing.sm,
-  },
   bleed: {
     position: "absolute",
     width: width * 0.9,
