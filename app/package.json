@@ -18,6 +18,7 @@
     "expo-blur": "~13.0.2",
     "expo-build-properties": "^55.0.14",
     "expo-constants": "~16.0.2",
+    "expo-dynamic-app-icon": "^1.2.0",
     "expo-haptics": "~13.0.1",
     "expo-image": "~1.13.0",
     "expo-linear-gradient": "~13.0.2",

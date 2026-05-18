@@ -10,8 +10,8 @@
     "newArchEnabled": true,
     "splash": {
       "image": "./assets/splash-icon.png",
-      "resizeMode": "contain",
-      "backgroundColor": "#0F0B1A"
+      "resizeMode": "cover",
+      "backgroundColor": "#000000"
     },
     "ios": {
       "supportsTablet": false,
@@ -40,6 +40,16 @@
           "ios": {
             "deploymentTarget": "17.0"
           }
+        }
+      ],
+      [
+        "expo-dynamic-app-icon",
+        {
+          "matrix":     { "image": "./assets/icons/neon-os.png",   "prerendered": true },
+          "cartoon":    { "image": "./assets/icons/cartoon.png",   "prerendered": true },
+          "ironman":    { "image": "./assets/icons/marvel.png",    "prerendered": true },
+          "synthwave":  { "image": "./assets/icons/retro-90s.png", "prerendered": true },
+          "glass":      { "image": "./assets/icons/glass-3d.png",  "prerendered": true }
         }
       ]
     ],

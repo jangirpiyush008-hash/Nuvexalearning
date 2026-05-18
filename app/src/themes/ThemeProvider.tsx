@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useEffect, useState, ReactNode, useCallback } from "react";
 import { SecureStorage } from "@/core/storage/secureStore";
 import { THEMES } from "./themes";
+import { setAppIconForTheme } from "./setAppIcon";
 import type { Theme, ThemeId } from "./types";
 
 const STORAGE_KEY = "nuvexa.theme";
@@ -38,6 +39,8 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
     } catch {
       /* swallow */
     }
+    // Swap the iOS home-screen icon (no-ops on Android / sim where unsupported)
+    setAppIconForTheme(id).catch(() => undefined);
   }, []);
 
   return (

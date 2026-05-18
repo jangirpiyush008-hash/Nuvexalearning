@@ -86,7 +86,7 @@ export function ThemeApplyModal({
           </View>
 
           <Text style={[styles.footnote, { color: theme.textMuted }]}>
-            Home-screen app icon stays the same · in-app icons swap to {theme.name} style.
+            Home-screen icon updates to {theme.name} on confirm · iOS may show a system prompt.
           </Text>
 
           {/* CTAs */}
