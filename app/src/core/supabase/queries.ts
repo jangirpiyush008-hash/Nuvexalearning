@@ -1,5 +1,33 @@
 import { supabase } from "./client";
-import type { Course, Lesson, Voice, CreditsWallet } from "../models";
+import type { Course, Lesson, Voice, CreditsWallet, Profile } from "../models";
+
+export async function fetchMyProfile(userId: string): Promise<Profile | null> {
+  const { data, error } = await supabase
+    .from("profiles")
+    .select("*")
+    .eq("id", userId)
+    .maybeSingle();
+  if (error) throw error;
+  return (data ?? null) as Profile | null;
+}
+
+export async function createMyProfile(input: {
+  id: string;
+  username: string;
+  display_name: string;
+}): Promise<Profile> {
+  const { data, error } = await supabase
+    .from("profiles")
+    .insert({
+      id: input.id,
+      username: input.username,
+      display_name: input.display_name,
+    })
+    .select()
+    .single();
+  if (error) throw error;
+  return data as Profile;
+}
 
 export async function fetchPublishedCourses(): Promise<Course[]> {
   const { data, error } = await supabase

@@ -34,7 +34,7 @@ export default function EmailAuth() {
       if (error) throw error;
       if (mode === "signup") {
         Alert.alert("Check your inbox", "We sent a confirmation link.", [
-          { text: "OK", onPress: () => router.push("/(auth)/theme") },
+          { text: "OK", onPress: () => router.push("/(auth)/profile-setup") },
         ]);
       }
     } catch (e: unknown) {

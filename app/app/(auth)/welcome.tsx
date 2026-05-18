@@ -48,8 +48,8 @@ export default function Welcome() {
       if (access_token && refresh_token) {
         const { error: setErr } = await supabase.auth.setSession({ access_token, refresh_token });
         if (setErr) throw setErr;
-        // First-run: route to theme picker; RootGate will land us in tabs after.
-        router.push("/(auth)/theme");
+        // profile-setup handles "already-set-up" case internally → redirects to theme picker.
+        router.push("/(auth)/profile-setup");
       }
     } catch (e: unknown) {
       Alert.alert("Google sign-in failed", e instanceof Error ? e.message : String(e));

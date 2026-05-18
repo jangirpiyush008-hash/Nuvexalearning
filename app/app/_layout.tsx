@@ -24,7 +24,7 @@ function RootGate() {
     const inAuth = segments[0] === "(auth)";
     if (!session && !inAuth) {
       router.replace("/(auth)/welcome");
-    } else if (session && inAuth && segments[1] !== "theme") {
+    } else if (session && inAuth && segments[1] !== "theme" && segments[1] !== "profile-setup") {
       router.replace("/(tabs)/home");
     }
   }, [session, loading, segments, router]);
