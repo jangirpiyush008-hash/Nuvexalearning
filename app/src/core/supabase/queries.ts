@@ -15,6 +15,7 @@ export async function createMyProfile(input: {
   id: string;
   username: string;
   display_name: string;
+  phone?: string | null;
 }): Promise<Profile> {
   const { data, error } = await supabase
     .from("profiles")
@@ -22,6 +23,7 @@ export async function createMyProfile(input: {
       id: input.id,
       username: input.username,
       display_name: input.display_name,
+      phone: input.phone ?? null,
     })
     .select()
     .single();

@@ -7,6 +7,7 @@ export type Profile = {
   avatar_url?: string | null;
   bio?: string | null;
   link?: string | null;
+  phone?: string | null;
   is_instructor: boolean;
   is_verified: boolean;
   is_public: boolean;

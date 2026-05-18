@@ -17,6 +17,7 @@ create table public.profiles (
   avatar_url      text,
   bio             text check (char_length(bio) <= 280),
   link            text,
+  phone           text,
   is_instructor   boolean not null default false,
   is_verified     boolean not null default false,
   is_public       boolean not null default true,

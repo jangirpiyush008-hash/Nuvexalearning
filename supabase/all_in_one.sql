@@ -1,10 +1,10 @@
 -- ===========================================================================
 -- NUVEXA LEARNING — ALL-IN-ONE SQL
--- Run this whole file in Supabase Dashboard → SQL Editor → New query → Run.
--- Two parts: schema (14 tables + reward_pools) → RLS policies.
--- No demo seed — real data comes from real auth signups.
+-- Fresh database setup. Run in Supabase Dashboard → SQL Editor.
+-- Includes profiles.phone column.
 -- ===========================================================================
--- Safe to re-run.
+-- For an EXISTING database that already has the schema, you only need to run:
+--   supabase/migrations/20260519000001_add_phone_to_profiles.sql
 -- ===========================================================================
 
 
@@ -30,6 +30,7 @@ create table public.profiles (
   avatar_url      text,
   bio             text check (char_length(bio) <= 280),
   link            text,
+  phone           text,
   is_instructor   boolean not null default false,
   is_verified     boolean not null default false,
   is_public       boolean not null default true,

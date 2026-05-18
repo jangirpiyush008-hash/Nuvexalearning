@@ -3,7 +3,6 @@ import { View, Text, TextInput, StyleSheet, Alert, Pressable } from "react-nativ
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useRouter } from "expo-router";
 import { NuvexaButton, Spacing, TerminalLabel, Typography } from "@/designSystem";
-import { supabase } from "@/core/supabase/client";
 import { createMyProfile, fetchMyProfile } from "@/core/supabase/queries";
 import { useAuth } from "@/features/auth/AuthProvider";
 import { useTheme } from "@/themes/ThemeProvider";
@@ -59,12 +58,12 @@ export default function ProfileSetup() {
 
     setLoading(true);
     try {
-      await createMyProfile({ id: user.id, username: handle, display_name: name });
-
-      // Optional: store phone on auth.users (built-in field — no schema change)
-      if (phone.trim()) {
-        await supabase.auth.updateUser({ phone: phone.trim() }).catch(() => undefined);
-      }
+      await createMyProfile({
+        id: user.id,
+        username: handle,
+        display_name: name,
+        phone: phone.trim() || null,
+      });
 
       router.replace("/(auth)/theme");
     } catch (e: unknown) {
