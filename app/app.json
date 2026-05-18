@@ -15,7 +15,7 @@
     },
     "ios": {
       "supportsTablet": false,
-      "bundleIdentifier": "studio.nuvexa.app",
+      "bundleIdentifier": "Learning.nuvexa.app",
       "buildNumber": "1",
       "infoPlist": {
         "ITSAppUsesNonExemptEncryption": false,
@@ -55,7 +55,7 @@
       [
         "@react-native-google-signin/google-signin",
         {
-          "iosUrlScheme": "com.googleusercontent.apps.REPLACE_WITH_REVERSED_CLIENT_ID"
+          "iosUrlScheme": "com.googleusercontent.apps.182045076906-3m1en21migp1bogtfktkurgfegtmb6h9"
         }
       ]
     ],
