@@ -1,0 +1,50 @@
+{
+  "expo": {
+    "name": "Nuvexa Learning",
+    "slug": "nuvexa-learning",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "scheme": "nuvexa",
+    "userInterfaceStyle": "dark",
+    "newArchEnabled": true,
+    "splash": {
+      "image": "./assets/splash-icon.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#0F0B1A"
+    },
+    "ios": {
+      "supportsTablet": false,
+      "bundleIdentifier": "studio.nuvexa.app",
+      "buildNumber": "1",
+      "infoPlist": {
+        "ITSAppUsesNonExemptEncryption": false,
+        "NSCameraUsageDescription": "Used to attach screenshots to your Voices reviews.",
+        "NSPhotoLibraryUsageDescription": "Used to attach screenshots to your Voices reviews."
+      }
+    },
+    "android": {
+      "package": "studio.nuvexa.app",
+      "versionCode": 1,
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/adaptive-icon.png",
+        "backgroundColor": "#0F0B1A"
+      }
+    },
+    "plugins": [
+      "expo-router",
+      "expo-secure-store",
+      [
+        "expo-build-properties",
+        {
+          "ios": {
+            "deploymentTarget": "17.0"
+          }
+        }
+      ]
+    ],
+    "experiments": {
+      "typedRoutes": true
+    }
+  }
+}
