@@ -7,6 +7,7 @@ import {
   statusCodes,
 } from "@react-native-google-signin/google-signin";
 import Constants from "expo-constants";
+import * as Crypto from "expo-crypto";
 import { NeonN, NuvexaButton, Spacing, TerminalLabel, Typography } from "@/designSystem";
 import { supabase, supabaseConfigured } from "@/core/supabase/client";
 import { useTheme } from "@/themes/ThemeProvider";
@@ -54,14 +55,26 @@ export default function Welcome() {
     setLoading(true);
     try {
       await GoogleSignin.hasPlayServices({ showPlayServicesUpdateDialog: true });
-      const userInfo = await GoogleSignin.signIn();
-      const idToken = userInfo?.idToken ?? (await GoogleSignin.getTokens()).idToken;
+
+      // Raw nonce → SHA256 hash. Google embeds the hash in the id_token's
+      // nonce claim; Supabase verifies hash(rawNonce) === id_token.nonce.
+      const rawNonce = Crypto.randomUUID();
+      const hashedNonce = await Crypto.digestStringAsync(
+        Crypto.CryptoDigestAlgorithm.SHA256,
+        rawNonce,
+      );
+
+      const userInfo: any = await GoogleSignin.signIn({ nonce: hashedNonce } as any);
+      const idToken =
+        userInfo?.idToken ??
+        userInfo?.data?.idToken ??
+        (await GoogleSignin.getTokens()).idToken;
       if (!idToken) throw new Error("No idToken returned from Google.");
 
-      // Supabase verifies the Google idToken server-side, no redirect needed.
       const { error } = await supabase.auth.signInWithIdToken({
         provider: "google",
         token: idToken,
+        nonce: rawNonce,
       });
       if (error) throw error;
 

@@ -8,7 +8,8 @@
     "android": "expo run:android",
     "prebuild": "expo prebuild",
     "lint": "eslint . --ext .ts,.tsx",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "postinstall": "patch-package"
   },
   "dependencies": {
     "@react-native-async-storage/async-storage": "1.23.1",
@@ -19,6 +20,7 @@
     "expo-blur": "~13.0.2",
     "expo-build-properties": "^55.0.14",
     "expo-constants": "~16.0.2",
+    "expo-crypto": "~13.0.2",
     "expo-dynamic-app-icon": "^1.2.0",
     "expo-haptics": "~13.0.1",
     "expo-image": "~1.13.0",
@@ -29,6 +31,7 @@
     "expo-status-bar": "~1.12.1",
     "expo-system-ui": "~3.0.7",
     "expo-web-browser": "~13.0.3",
+    "patch-package": "^8.0.1",
     "posthog-react-native": "^3.3.6",
     "react": "18.2.0",
     "react-native": "0.74.5",

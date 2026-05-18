@@ -15,7 +15,7 @@ import { SecureStorage } from "@/core/storage/secureStore";
 import { THEMES, THEME_ORDER } from "@/themes/themes";
 
 const { width, height } = Dimensions.get("window");
-const FLAG_KEY = "nuvexa.firstLaunch.done";
+const FLAG_KEY = "nuvexa.firstLaunch.v2.done";
 
 const FLASH_MS = 220;          // each theme card visible for this long
 const STATIC_MS = 800;          // final hold on "ALL THEMES" composite before fade
