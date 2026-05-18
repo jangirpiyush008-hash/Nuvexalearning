@@ -582,19 +582,36 @@ create policy "reward_pools_read_all"
 
 
 -- ╭─────────────────────────────────────────────────────────────────────────╮
--- │ PART 3 / 3 — DEMO SEED (optional)                                       │
--- │ Skip this section if you don't want demo courses/instructors,           │
--- │ or replace the instructor UUIDs with real auth.users IDs first.         │
+-- │ PART 3 / 3 — DEMO SEED                                                  │
+-- │ Creates demo auth users + 3 courses. Safe to re-run.                    │
 -- ╰─────────────────────────────────────────────────────────────────────────╯
 -- Nuvexa Studio — demo seed
 -- Three instructors, three courses with lessons, voices, tests.
--- IMPORTANT: this assumes auth.users rows exist for the seed UUIDs (create via Supabase dashboard or admin API).
--- For pure local dev with supabase CLI, run `supabase seed buckets` separately for media.
+-- Creates auth.users rows first so profile FKs are satisfied.
 
--- Demo user IDs (replace with real auth.users IDs from your project)
--- Instructor A: 00000000-0000-0000-0000-00000000a001
--- Instructor B: 00000000-0000-0000-0000-00000000a002
--- Instructor C: 00000000-0000-0000-0000-00000000a003
+-- ============================================================================
+-- Demo auth users (instructors)
+-- Direct insert into auth.users — bypasses normal signup flow. Demo-only.
+-- The passwords are bcrypt hashes of an unusable value; these accounts are
+-- not meant to log in. They exist solely to satisfy profile FK constraints.
+-- ============================================================================
+insert into auth.users (
+  id, instance_id, aud, role,
+  email, encrypted_password, email_confirmed_at,
+  raw_app_meta_data, raw_user_meta_data,
+  created_at, updated_at
+)
+values
+  ('00000000-0000-0000-0000-00000000a001', '00000000-0000-0000-0000-000000000000', 'authenticated', 'authenticated',
+    'priya@nuvexa.demo', crypt('nuvexa-demo-instructor', gen_salt('bf')), now(),
+    '{"provider":"email","providers":["email"]}'::jsonb, '{"name":"Priya Mehta"}'::jsonb, now(), now()),
+  ('00000000-0000-0000-0000-00000000a002', '00000000-0000-0000-0000-000000000000', 'authenticated', 'authenticated',
+    'arjun@nuvexa.demo', crypt('nuvexa-demo-instructor', gen_salt('bf')), now(),
+    '{"provider":"email","providers":["email"]}'::jsonb, '{"name":"Arjun Kapoor"}'::jsonb, now(), now()),
+  ('00000000-0000-0000-0000-00000000a003', '00000000-0000-0000-0000-000000000000', 'authenticated', 'authenticated',
+    'neha@nuvexa.demo', crypt('nuvexa-demo-instructor', gen_salt('bf')), now(),
+    '{"provider":"email","providers":["email"]}'::jsonb, '{"name":"Neha Verma"}'::jsonb, now(), now())
+on conflict (id) do nothing;
 
 -- ============================================================================
 -- Profiles
@@ -653,7 +670,8 @@ values
 
   -- Course 3
   ('00000000-0000-0000-0000-0000000c0003', 1, 'Pick the right wedge',                'demo-stream-3a', 'demo/c3/l1.pdf', 480, true),
-  ('00000000-0000-0000-0000-0000000c0003', 2, 'Pricing for the Indian market',       'demo-stream-3b', 'demo/c3/l2.pdf', 720, false);
+  ('00000000-0000-0000-0000-0000000c0003', 2, 'Pricing for the Indian market',       'demo-stream-3b', 'demo/c3/l2.pdf', 720, false)
+on conflict (course_id, position) do nothing;
 
 -- ============================================================================
 -- Tests
@@ -683,9 +701,3 @@ values
     70, 95, 30, 9900
   )
 on conflict (course_id) do nothing;
-
--- ============================================================================
--- Voices (sample reviews — requires enrollment for real inserts in app, seeded directly here)
--- ============================================================================
--- Skipping voice seeds until at least one demo learner account exists.
--- Add manually via seed-after-signup script.
