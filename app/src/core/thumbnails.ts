@@ -4,8 +4,10 @@
 
 const REGISTRY: Record<string, number> = {
   "prompt-engineering-builders": require("../../assets/thumbnails/prompt-engineering-builders.png"),
-  "rag-in-production": require("../../assets/thumbnails/rag-in-production.png"),
-  "launch-ai-saas-30-days": require("../../assets/thumbnails/launch-ai-saas-30-days.png"),
+  "rag-in-production":           require("../../assets/thumbnails/rag-in-production.png"),
+  "launch-ai-saas-30-days":      require("../../assets/thumbnails/launch-ai-saas-30-days.png"),
+  "voice-and-audio-with-ai":     require("../../assets/thumbnails/voice-and-audio-with-ai.png"),
+  "fine-tuning-llama":           require("../../assets/thumbnails/fine-tuning-llama.png"),
 };
 
 export function resolveThumbnail(thumb: string | null | undefined):

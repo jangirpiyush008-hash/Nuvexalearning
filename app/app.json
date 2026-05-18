@@ -51,6 +51,12 @@
           "synthwave":  { "image": "./assets/icons/retro-90s.png", "prerendered": true },
           "glass":      { "image": "./assets/icons/glass-3d.png",  "prerendered": true }
         }
+      ],
+      [
+        "@react-native-google-signin/google-signin",
+        {
+          "iosUrlScheme": "com.googleusercontent.apps.REPLACE_WITH_REVERSED_CLIENT_ID"
+        }
       ]
     ],
     "experiments": {

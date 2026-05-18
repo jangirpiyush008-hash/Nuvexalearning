@@ -106,7 +106,7 @@ function NeonSplash() {
           <NeonN size={140} />
         </Animated.View>
         <Text style={[styles.wordmark, { color: theme.text }]}>
-          nuvexa<Text style={{ color: theme.textMuted, fontWeight: "500" }}>.studio</Text>
+          nuvexa<Text style={{ color: theme.textMuted, fontWeight: "500" }}>.learning</Text>
         </Text>
         <Text style={[styles.terminal, { color: theme.primary, textShadowColor: theme.primary }]}>
           {frames[frame]}
@@ -252,7 +252,7 @@ function MarvelSplash() {
             subStyle,
           ]}
         >
-          $ STUDIO · ASSEMBLE
+          $ LEARNING · ASSEMBLE
         </Animated.Text>
       </View>
     </View>
@@ -289,7 +289,7 @@ function RetroSplash() {
       <SynthwaveBackground />
       <View style={[StyleSheet.absoluteFill, styles.center]}>
         <Animated.Text style={[styles.retroTitleMega, titleStyle]}>NUVEXA</Animated.Text>
-        <Animated.Text style={[styles.retroSubMega, subStyle]}>$ STUDIO · 1986</Animated.Text>
+        <Animated.Text style={[styles.retroSubMega, subStyle]}>$ LEARNING · 1986</Animated.Text>
       </View>
     </View>
   );

@@ -18,6 +18,7 @@ create table public.profiles (
   bio             text check (char_length(bio) <= 280),
   link            text,
   phone           text,
+  learning_prefs  jsonb not null default '{}'::jsonb,
   is_instructor   boolean not null default false,
   is_verified     boolean not null default false,
   is_public       boolean not null default true,

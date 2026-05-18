@@ -16,6 +16,7 @@ export async function createMyProfile(input: {
   username: string;
   display_name: string;
   phone?: string | null;
+  learning_prefs?: Profile["learning_prefs"];
 }): Promise<Profile> {
   const { data, error } = await supabase
     .from("profiles")
@@ -24,6 +25,7 @@ export async function createMyProfile(input: {
       username: input.username,
       display_name: input.display_name,
       phone: input.phone ?? null,
+      learning_prefs: input.learning_prefs ?? {},
     })
     .select()
     .single();

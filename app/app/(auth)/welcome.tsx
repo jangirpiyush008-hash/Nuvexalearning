@@ -1,9 +1,12 @@
-import React, { useState } from "react";
-import { View, Text, StyleSheet, Dimensions, Alert, Platform } from "react-native";
+import React, { useEffect, useState } from "react";
+import { View, Text, StyleSheet, Dimensions, Alert } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useRouter } from "expo-router";
-import * as WebBrowser from "expo-web-browser";
-import * as Linking from "expo-linking";
+import {
+  GoogleSignin,
+  statusCodes,
+} from "@react-native-google-signin/google-signin";
+import Constants from "expo-constants";
 import { NeonN, NuvexaButton, Spacing, TerminalLabel, Typography } from "@/designSystem";
 import { supabase, supabaseConfigured } from "@/core/supabase/client";
 import { useTheme } from "@/themes/ThemeProvider";
@@ -11,51 +14,61 @@ import { ThemeOverlay } from "@/themes/ThemeOverlay";
 
 const { width } = Dimensions.get("window");
 
-// Required for the OAuth web-browser to complete the redirect flow.
-WebBrowser.maybeCompleteAuthSession();
+// iOS client ID from Google Cloud Console → OAuth 2.0 Client IDs → iOS.
+// Set EXPO_PUBLIC_GOOGLE_IOS_CLIENT_ID in app/.env.local.
+const IOS_CLIENT_ID = process.env.EXPO_PUBLIC_GOOGLE_IOS_CLIENT_ID;
+// Web client ID — required to mint an idToken that Supabase can verify.
+const WEB_CLIENT_ID = process.env.EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID;
 
 export default function Welcome() {
   const router = useRouter();
   const { theme } = useTheme();
   const [loading, setLoading] = useState(false);
 
+  useEffect(() => {
+    if (!WEB_CLIENT_ID) return;
+    GoogleSignin.configure({
+      iosClientId: IOS_CLIENT_ID,
+      webClientId: WEB_CLIENT_ID,
+      scopes: ["profile", "email"],
+    });
+  }, []);
+
   const signInWithGoogle = async () => {
     if (!supabaseConfigured) {
       Alert.alert("Auth not configured", "Set EXPO_PUBLIC_SUPABASE_URL + ANON_KEY in app/.env.local");
       return;
     }
+    if (!WEB_CLIENT_ID) {
+      // Fall through to a demo session so the build still runs in Expo Go.
+      if (Constants.appOwnership === "expo") {
+        router.push("/(auth)/profile-setup");
+        return;
+      }
+      Alert.alert(
+        "Google not configured",
+        "Set EXPO_PUBLIC_GOOGLE_IOS_CLIENT_ID and EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID in app/.env.local, then drop GoogleService-Info.plist into ios/.",
+      );
+      return;
+    }
     setLoading(true);
     try {
-      const redirectTo = Linking.createURL("auth/callback");
-      const { data, error } = await supabase.auth.signInWithOAuth({
+      await GoogleSignin.hasPlayServices({ showPlayServicesUpdateDialog: true });
+      const userInfo = await GoogleSignin.signIn();
+      const idToken = userInfo?.idToken ?? (await GoogleSignin.getTokens()).idToken;
+      if (!idToken) throw new Error("No idToken returned from Google.");
+
+      // Supabase verifies the Google idToken server-side, no redirect needed.
+      const { error } = await supabase.auth.signInWithIdToken({
         provider: "google",
-        options: {
-          redirectTo,
-          skipBrowserRedirect: true,
-        },
+        token: idToken,
       });
       if (error) throw error;
-      if (!data?.url) throw new Error("No OAuth URL returned by Supabase.");
 
-      const result = await WebBrowser.openAuthSessionAsync(data.url, redirectTo, {
-        // Skips the "wants to use <domain> to Sign In" iOS prompt.
-        // We don't share cookies with Safari, which is the right default for OAuth.
-        preferEphemeralSession: true,
-      });
-      if (result.type !== "success" || !result.url) return;
-
-      // Pull tokens out of the redirect URL and hand to Supabase.
-      const url = new URL(result.url);
-      const params = new URLSearchParams(url.hash.replace(/^#/, "") || url.search);
-      const access_token = params.get("access_token");
-      const refresh_token = params.get("refresh_token");
-      if (access_token && refresh_token) {
-        const { error: setErr } = await supabase.auth.setSession({ access_token, refresh_token });
-        if (setErr) throw setErr;
-        // profile-setup handles "already-set-up" case internally → redirects to theme picker.
-        router.push("/(auth)/profile-setup");
-      }
-    } catch (e: unknown) {
+      // profile-setup handles "already-set-up" case internally → redirects to theme picker.
+      router.push("/(auth)/profile-setup");
+    } catch (e: any) {
+      if (e?.code === statusCodes.SIGN_IN_CANCELLED) return;
       Alert.alert("Google sign-in failed", e instanceof Error ? e.message : String(e));
     } finally {
       setLoading(false);
@@ -86,7 +99,7 @@ export default function Welcome() {
           <NeonN size={88} />
           <Text style={[styles.wordmark, { color: theme.text }]}>
             nuvexa
-            <Text style={{ color: theme.textMuted, fontWeight: "500" }}>.studio</Text>
+            <Text style={{ color: theme.textMuted, fontWeight: "500" }}>.learning</Text>
           </Text>
 
           <View style={styles.terminalRow}>

@@ -22,6 +22,7 @@ import Animated, {
 } from "react-native-reanimated";
 import { useTheme } from "@/themes/ThemeProvider";
 import { Spacing, Typography, NuvexaButton, NuvexaCard, TerminalLabel } from "@/designSystem";
+import { LeaderboardPanel } from "@/features/arcade/LeaderboardPanel";
 
 const { width: SCREEN_W, height: SCREEN_H } = Dimensions.get("window");
 const PLAY_H = SCREEN_H * 0.62;
@@ -218,9 +219,14 @@ export default function Arcade() {
                 </View>
               </View>
 
-              <View style={{ height: 16 }} />
+              <View style={{ height: 12 }} />
               <View style={{ width: 220 }}>
                 <NuvexaButton label="Start game" onPress={start} />
+              </View>
+
+              {/* Weekly leaderboard preview */}
+              <View style={{ marginTop: 16, width: 320, maxWidth: "100%" }}>
+                <LeaderboardPanel />
               </View>
             </View>
           )}
@@ -233,7 +239,7 @@ export default function Arcade() {
                   color: theme.text,
                   fontSize: 48,
                   fontWeight: "900",
-                  marginTop: 8,
+                  marginTop: 4,
                   textShadowColor: theme.primary,
                   textShadowOffset: { width: 0, height: 0 },
                   textShadowRadius: 14,
@@ -241,11 +247,15 @@ export default function Arcade() {
               >
                 {score}
               </Text>
-              <Text style={[Typography.body, { color: theme.textSubtle, marginTop: 4 }]}>
+              <Text style={[Typography.body, { color: theme.textSubtle, marginTop: 2 }]}>
                 {score > hiScore ? "🏆 new best!" : `best: ${hiScore}`}
               </Text>
-              <View style={{ height: 20 }} />
-              <View style={{ width: 220 }}>
+
+              <View style={{ width: 320, maxWidth: "100%", marginTop: 12 }}>
+                <LeaderboardPanel yourScore={score} />
+              </View>
+
+              <View style={{ width: 220, marginTop: 12 }}>
                 <NuvexaButton label="Play again" onPress={start} />
                 <View style={{ height: 8 }} />
                 <NuvexaButton label="Back" variant="ghost" onPress={() => router.back()} />

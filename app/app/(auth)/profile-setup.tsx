@@ -1,12 +1,19 @@
 import React, { useEffect, useState } from "react";
-import { View, Text, TextInput, StyleSheet, Alert, Pressable } from "react-native";
+import { View, Text, TextInput, StyleSheet, Alert, Pressable, ScrollView } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useRouter } from "expo-router";
-import { NuvexaButton, Spacing, TerminalLabel, Typography } from "@/designSystem";
+import { GradientChip, NuvexaButton, Spacing, TerminalLabel, Typography } from "@/designSystem";
 import { createMyProfile, fetchMyProfile } from "@/core/supabase/queries";
 import { useAuth } from "@/features/auth/AuthProvider";
 import { useTheme } from "@/themes/ThemeProvider";
 import { ThemeOverlay } from "@/themes/ThemeOverlay";
+
+const INTERESTS = ["AI", "RAG", "Agents", "AI SaaS", "Voice", "No-code"];
+const LEVELS: Array<"beginner" | "intermediate" | "advanced"> = [
+  "beginner",
+  "intermediate",
+  "advanced",
+];
 
 export default function ProfileSetup() {
   const router = useRouter();
@@ -16,24 +23,23 @@ export default function ProfileSetup() {
   const [displayName, setDisplayName] = useState("");
   const [username, setUsername] = useState("");
   const [phone, setPhone] = useState("");
-  const [focused, setFocused] = useState<null | "name" | "user" | "phone">(null);
+  const [interests, setInterests] = useState<string[]>([]);
+  const [level, setLevel] = useState<typeof LEVELS[number] | null>(null);
+  const [goal, setGoal] = useState("");
+  const [focused, setFocused] = useState<null | "name" | "user" | "phone" | "goal">(null);
   const [loading, setLoading] = useState(false);
 
-  // Prefill from Google metadata + check if profile already exists
   useEffect(() => {
     if (!user) return;
     const meta = (user.user_metadata ?? {}) as Record<string, string>;
     const fullName = meta.full_name || meta.name || "";
     setDisplayName((d) => d || fullName);
 
-    // Username — derive a sane suggestion from email
     const email = user.email ?? "";
     const handle = email.split("@")[0]?.toLowerCase().replace(/[^a-z0-9_]/g, "") ?? "";
     setUsername((u) => u || handle);
-
     setPhone((p) => p || user.phone || "");
 
-    // If profile already exists, skip setup — go straight to theme picker
     fetchMyProfile(user.id)
       .then((p) => {
         if (p) router.replace("/(auth)/theme");
@@ -41,14 +47,15 @@ export default function ProfileSetup() {
       .catch(() => undefined);
   }, [user]);
 
+  const toggleInterest = (i: string) =>
+    setInterests((cur) => (cur.includes(i) ? cur.filter((x) => x !== i) : [...cur, i]));
+
   const submit = async () => {
     if (!user) return;
     const name = displayName.trim();
     const handle = username.trim().toLowerCase();
 
-    if (name.length < 2) {
-      return Alert.alert("Display name", "Enter at least 2 characters.");
-    }
+    if (name.length < 2) return Alert.alert("Display name", "Enter at least 2 characters.");
     if (handle.length < 3 || handle.length > 30 || !/^[a-z0-9_]+$/.test(handle)) {
       return Alert.alert(
         "Username",
@@ -63,8 +70,12 @@ export default function ProfileSetup() {
         username: handle,
         display_name: name,
         phone: phone.trim() || null,
+        learning_prefs: {
+          interests: interests.length ? interests : undefined,
+          experience: level ?? undefined,
+          goal: goal.trim() || undefined,
+        },
       });
-
       router.replace("/(auth)/theme");
     } catch (e: unknown) {
       const msg = e instanceof Error ? e.message : String(e);
@@ -84,7 +95,7 @@ export default function ProfileSetup() {
     <View style={[styles.root, { backgroundColor: theme.surface }]}>
       <ThemeOverlay />
       <SafeAreaView style={styles.safe}>
-        <View style={styles.body}>
+        <ScrollView contentContainerStyle={styles.scroll} showsVerticalScrollIndicator={false}>
           <TerminalLabel>SETUP · ONE_LAST_THING</TerminalLabel>
           <Text
             style={{
@@ -97,14 +108,14 @@ export default function ProfileSetup() {
               fontStyle: theme.italicHeadlines ? "italic" : "normal",
             }}
           >
-            Who are you?
+            Tell us about you
           </Text>
           <Text style={[Typography.body, { color: theme.textSubtle, marginTop: Spacing.xs }]}>
-            This shows up on your Voices, certificates, and profile.
+            Personalizes your Home, Sprint, and recommendations.
           </Text>
 
           <Field
-            label="$ DISPLAY_NAME"
+            label="$ NAME"
             placeholder="Piyush Jangir"
             value={displayName}
             onChangeText={setDisplayName}
@@ -112,7 +123,6 @@ export default function ProfileSetup() {
             onFocus={() => setFocused("name")}
             onBlur={() => setFocused(null)}
           />
-
           <Field
             label="$ USERNAME"
             placeholder="piyush_j"
@@ -124,7 +134,6 @@ export default function ProfileSetup() {
             autoCapitalize="none"
             hint="3-30 chars · a-z, 0-9, _"
           />
-
           <Field
             label="$ PHONE (optional)"
             placeholder="+91 98765 43210"
@@ -136,19 +145,64 @@ export default function ProfileSetup() {
             onBlur={() => setFocused(null)}
             hint="for reward payouts · verified later"
           />
-        </View>
 
-        <View style={styles.actions}>
+          {/* Interests */}
+          <View style={styles.field}>
+            <Text style={[Typography.terminal, { color: theme.textMuted, marginBottom: 8, fontSize: 10 }]}>
+              $ WHAT_DO_YOU_WANT_TO_LEARN
+            </Text>
+            <View style={styles.chipRow}>
+              {INTERESTS.map((i) => {
+                const active = interests.includes(i);
+                return (
+                  <Pressable key={i} onPress={() => toggleInterest(i)} style={{ marginRight: 6, marginBottom: 6 }}>
+                    <GradientChip label={i} variant={active ? "solid" : "outline"} />
+                  </Pressable>
+                );
+              })}
+            </View>
+          </View>
+
+          {/* Experience */}
+          <View style={styles.field}>
+            <Text style={[Typography.terminal, { color: theme.textMuted, marginBottom: 8, fontSize: 10 }]}>
+              $ EXPERIENCE_LEVEL
+            </Text>
+            <View style={styles.chipRow}>
+              {LEVELS.map((l) => {
+                const active = level === l;
+                return (
+                  <Pressable key={l} onPress={() => setLevel(l)} style={{ marginRight: 6, marginBottom: 6 }}>
+                    <GradientChip label={l.toUpperCase()} variant={active ? "solid" : "outline"} />
+                  </Pressable>
+                );
+              })}
+            </View>
+          </View>
+
+          {/* Goal */}
+          <Field
+            label="$ PRIMARY_GOAL (optional)"
+            placeholder="Land an AI engineering job"
+            value={goal}
+            onChangeText={(v) => setGoal(v.slice(0, 80))}
+            focused={focused === "goal"}
+            onFocus={() => setFocused("goal")}
+            onBlur={() => setFocused(null)}
+            hint={`${goal.length}/80`}
+          />
+
+          <View style={{ height: Spacing.xl }} />
           <NuvexaButton label="Continue" onPress={submit} loading={loading} />
           <Pressable
             onPress={() => router.replace("/(auth)/theme")}
-            style={styles.skipBtn}
+            style={{ paddingVertical: Spacing.md }}
           >
             <Text style={[Typography.caption, { color: theme.textMuted, textAlign: "center" }]}>
               Skip for now — you can fill this in Profile later.
             </Text>
           </Pressable>
-        </View>
+        </ScrollView>
       </SafeAreaView>
     </View>
   );
@@ -223,9 +277,8 @@ function Field({
 const styles = StyleSheet.create({
   root: { flex: 1 },
   safe: { flex: 1, paddingHorizontal: Spacing.xl, paddingTop: Spacing.xl },
-  body: { flex: 1 },
+  scroll: { paddingBottom: Spacing.xxxl },
   field: { marginTop: Spacing.lg },
   input: { height: 52, paddingHorizontal: Spacing.lg, fontSize: 16 },
-  actions: { paddingBottom: Spacing.xl },
-  skipBtn: { paddingVertical: Spacing.md },
+  chipRow: { flexDirection: "row", flexWrap: "wrap" },
 });

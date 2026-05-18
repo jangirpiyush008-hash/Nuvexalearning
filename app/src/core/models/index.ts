@@ -8,6 +8,11 @@ export type Profile = {
   bio?: string | null;
   link?: string | null;
   phone?: string | null;
+  learning_prefs?: {
+    interests?: string[];
+    experience?: "beginner" | "intermediate" | "advanced";
+    goal?: string;
+  };
   is_instructor: boolean;
   is_verified: boolean;
   is_public: boolean;

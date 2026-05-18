@@ -19,6 +19,7 @@ import {
   Typography,
 } from "@/designSystem";
 import { useTheme } from "@/themes/ThemeProvider";
+import { ThemeOverlay } from "@/themes/ThemeOverlay";
 import { PLANS, calcRoi, type Plan } from "@/features/pricing/plans";
 
 export default function PricingScreen() {
@@ -35,6 +36,7 @@ export default function PricingScreen() {
 
   return (
     <View style={[styles.root, { backgroundColor: theme.surface }]}>
+      <ThemeOverlay />
       <SafeAreaView style={{ flex: 1 }}>
         <ScrollView contentContainerStyle={styles.scroll} showsVerticalScrollIndicator={false}>
           <View style={styles.headerRow}>
@@ -44,28 +46,42 @@ export default function PricingScreen() {
             <TerminalLabel>PRICING</TerminalLabel>
           </View>
 
-          <Animated.Text
-            entering={FadeInDown.duration(400)}
-            style={{
-              fontSize: 32,
-              fontWeight: theme.displayWeight,
-              color: theme.text,
-              letterSpacing: -0.5,
-              marginTop: Spacing.lg,
-              textTransform: theme.uppercase ? "uppercase" : "none",
-              fontStyle: theme.italicHeadlines ? "italic" : "normal",
-            }}
-          >
-            Pay once. <Text style={{ color: theme.primary }}>Earn it back.</Text>
-          </Animated.Text>
-          <Animated.Text
-            entering={FadeInDown.duration(400).delay(60)}
-            style={[Typography.body, { color: theme.textSubtle, marginTop: Spacing.xs }]}
-          >
-            One-time payment · Lifetime access · Reward-eligible from day one.
-          </Animated.Text>
+          {/* HERO — dramatic earn-back claim */}
+          <Animated.View entering={FadeInDown.duration(450)} style={styles.hero}>
+            <Text style={[styles.heroEyebrow, { color: theme.reward, textShadowColor: theme.reward }]}>
+              $ PAY_ONCE · EARN_IT_BACK
+            </Text>
+            <Text
+              style={{
+                fontSize: 44,
+                fontWeight: "900",
+                color: theme.text,
+                letterSpacing: -1,
+                marginTop: 8,
+                textTransform: theme.uppercase ? "uppercase" : "none",
+                fontStyle: theme.italicHeadlines ? "italic" : "normal",
+              }}
+            >
+              Win <Text style={{ color: theme.reward }}>₹10,000</Text>
+            </Text>
+            <Text
+              style={{
+                fontSize: 36,
+                fontWeight: "800",
+                color: theme.text,
+                letterSpacing: -0.7,
+                marginTop: -4,
+              }}
+            >
+              from a <Text style={{ color: theme.primary }}>₹1,999</Text> course.
+            </Text>
+            <Text style={[Typography.body, { color: theme.textSubtle, marginTop: Spacing.md, lineHeight: 22 }]}>
+              Pass any final test with 95%+ → ₹10,000 in AI Credits. 70%+ → ₹200.
+              {"\n"}One-time payment · Lifetime access · Refund if you don't pass in 60 days.
+            </Text>
+          </Animated.View>
 
-          {/* ── ROI calculator (hero) ────────────────────────────── */}
+          {/* ── ROI calculator ──────────────────────────────────── */}
           <Animated.View entering={FadeInDown.duration(500).delay(120)}>
             <View
               style={[
@@ -78,19 +94,10 @@ export default function PricingScreen() {
                 },
               ]}
             >
-              <Text
-                style={[
-                  styles.eyebrow,
-                  { color: theme.reward, textShadowColor: theme.reward },
-                ]}
-              >
+              <Text style={[styles.eyebrow, { color: theme.reward, textShadowColor: theme.reward }]}>
                 $ ROI_CALCULATOR
               </Text>
-              <Text style={[Typography.titleM, { color: theme.text, marginTop: 6 }]}>
-                If I win, how much do I earn back?
-              </Text>
 
-              {/* Plan selector pill */}
               <View style={[styles.planRow, { borderColor: theme.border, backgroundColor: theme.surfaceElevated }]}>
                 {PLANS.map((p) => {
                   const active = selected === p.id;
@@ -100,7 +107,7 @@ export default function PricingScreen() {
                       onPress={() => setSelected(p.id)}
                       style={[
                         styles.planChip,
-                        active && { backgroundColor: theme.primary },
+                        active && { backgroundColor: theme.primary, shadowColor: theme.primary, shadowOpacity: 0.4, shadowRadius: 10, shadowOffset: { width: 0, height: 0 } },
                       ]}
                     >
                       <Text
@@ -116,7 +123,6 @@ export default function PricingScreen() {
                 })}
               </View>
 
-              {/* Stepper rows */}
               <Stepper
                 label="95%+ wins (₹10k each)"
                 value={topWins}
@@ -132,76 +138,69 @@ export default function PricingScreen() {
                 accent={theme.primary}
               />
 
-              {/* Math */}
               <View style={[styles.mathRow, { borderTopColor: theme.border }]}>
                 <View style={styles.mathCol}>
                   <Text style={[Typography.caption, { color: theme.textMuted }]}>You pay</Text>
-                  <Text style={[Typography.titleM, { color: theme.text }]}>
-                    {inrText(plan.pricePaise)}
-                  </Text>
+                  <Text style={[styles.mathVal, { color: theme.text }]}>{inrText(plan.pricePaise)}</Text>
                 </View>
-                <Text style={{ color: theme.textMuted, fontSize: 22 }}>→</Text>
+                <Text style={{ color: theme.textMuted, fontSize: 24, fontWeight: "200" }}>→</Text>
                 <View style={styles.mathCol}>
                   <Text style={[Typography.caption, { color: theme.textMuted }]}>You earn</Text>
                   <Text
                     style={[
-                      Typography.titleM,
+                      styles.mathVal,
                       { color: theme.reward, textShadowColor: theme.reward, textShadowOffset: { width: 0, height: 0 }, textShadowRadius: 6 },
                     ]}
                   >
                     {inrText(roi.earned)}
                   </Text>
                 </View>
-                <Text style={{ color: theme.textMuted, fontSize: 22 }}>=</Text>
+                <Text style={{ color: theme.textMuted, fontSize: 24, fontWeight: "200" }}>=</Text>
                 <View style={styles.mathCol}>
                   <Text style={[Typography.caption, { color: theme.textMuted }]}>Net</Text>
                   <Text
                     style={[
-                      Typography.titleM,
-                      {
-                        color: roi.net >= 0 ? theme.reward : theme.danger,
-                        fontWeight: "900",
-                      },
+                      styles.mathVal,
+                      { color: roi.net >= 0 ? theme.reward : theme.danger, fontWeight: "900" },
                     ]}
                   >
                     {roi.net >= 0 ? "+" : "−"}{inrText(Math.abs(roi.net))}
                   </Text>
                 </View>
               </View>
-              <Text style={[Typography.caption, { color: theme.textMuted, marginTop: 6, textAlign: "center" }]}>
+              <Text style={[Typography.caption, { color: theme.textMuted, marginTop: 8, textAlign: "center" }]}>
                 {roi.net >= 0
-                  ? `Net positive · ${roi.netPct}% return on investment`
+                  ? `🎯  Net positive — ${roi.netPct}% ROI`
                   : `Need ${Math.ceil((plan.pricePaise - roi.earned) / 20_000)} more pass-tier wins to break even`}
               </Text>
             </View>
           </Animated.View>
 
-          {/* ── Plan cards ────────────────────────────────────── */}
+          {/* ── Plans ─────────────────────────────────────────── */}
           <Text style={[styles.sectionH, { color: theme.textMuted }]}>$ CHOOSE_YOUR_PLAN</Text>
           {PLANS.map((p, i) => (
             <Animated.View key={p.id} entering={FadeInDown.duration(450).delay(220 + i * 80)}>
-              <PlanCard
-                plan={p}
-                onPress={() => setSelected(p.id)}
-                isSelected={selected === p.id}
-              />
+              <PlanCard plan={p} onPress={() => setSelected(p.id)} isSelected={selected === p.id} />
             </Animated.View>
           ))}
 
           {/* ── Refund insurance ──────────────────────────────── */}
           <Animated.View entering={FadeIn.duration(500).delay(580)}>
-            <NuvexaCard
-              style={{ marginTop: Spacing.lg, borderColor: theme.primary, borderWidth: 1 }}
-            >
-              <Text style={[styles.eyebrow, { color: theme.primary, textShadowColor: theme.primary }]}>
-                $ REFUND_INSURANCE
-              </Text>
-              <Text style={[Typography.titleS, { color: theme.text, marginTop: 6 }]}>
-                Pass 70% in 60 days, or get a full refund.
-              </Text>
-              <Text style={[Typography.body, { color: theme.textSubtle, marginTop: 4 }]}>
-                We're aligned. We win when you win. If you don't pass the final test on at least one course within 60 days of purchase, full refund — no questions.
-              </Text>
+            <NuvexaCard style={{ marginTop: Spacing.lg, borderColor: theme.primary, borderWidth: 1 }}>
+              <View style={{ flexDirection: "row", alignItems: "flex-start", gap: 12 }}>
+                <Text style={{ fontSize: 28 }}>🛡</Text>
+                <View style={{ flex: 1 }}>
+                  <Text style={[styles.eyebrow, { color: theme.primary, textShadowColor: theme.primary }]}>
+                    $ REFUND_INSURANCE
+                  </Text>
+                  <Text style={[Typography.titleS, { color: theme.text, marginTop: 6 }]}>
+                    Pass 70% in 60 days, or full refund.
+                  </Text>
+                  <Text style={[Typography.bodyS, { color: theme.textSubtle, marginTop: 4, lineHeight: 19 }]}>
+                    We're aligned. We win when you win. If you don't pass any course within 60 days of purchase, we refund the whole amount. No questions.
+                  </Text>
+                </View>
+              </View>
             </NuvexaCard>
           </Animated.View>
 
@@ -218,7 +217,7 @@ export default function PricingScreen() {
             />
             <View style={{ height: Spacing.sm }} />
             <Text style={[Typography.caption, { color: theme.textMuted, textAlign: "center" }]}>
-              No subscription. No auto-renew. One-time. Lifetime.
+              No subscription · No auto-renew · One-time · Lifetime
             </Text>
           </Animated.View>
         </ScrollView>
@@ -244,10 +243,7 @@ function Stepper({
   return (
     <View style={styles.stepRow}>
       <Text style={[Typography.body, { color: theme.text, flex: 1 }]}>{label}</Text>
-      <Pressable
-        onPress={onDec}
-        style={[styles.stepBtn, { borderColor: theme.border }]}
-      >
+      <Pressable onPress={onDec} style={[styles.stepBtn, { borderColor: theme.border }]}>
         <Text style={{ color: theme.textSubtle, fontSize: 20, fontWeight: "700" }}>−</Text>
       </Pressable>
       <Text
@@ -258,10 +254,7 @@ function Stepper({
       >
         {value}
       </Text>
-      <Pressable
-        onPress={onInc}
-        style={[styles.stepBtn, { borderColor: theme.border }]}
-      >
+      <Pressable onPress={onInc} style={[styles.stepBtn, { borderColor: theme.border }]}>
         <Text style={{ color: theme.textSubtle, fontSize: 20, fontWeight: "700" }}>+</Text>
       </Pressable>
     </View>
@@ -278,6 +271,11 @@ function PlanCard({
   onPress: () => void;
 }) {
   const { theme } = useTheme();
+  const accentBorder = isSelected
+    ? theme.primary
+    : plan.popular
+      ? theme.reward
+      : theme.border;
   return (
     <Pressable onPress={onPress} style={{ marginTop: Spacing.md }}>
       <View
@@ -285,17 +283,22 @@ function PlanCard({
           styles.planCard,
           {
             backgroundColor: theme.surfaceCard,
-            borderColor: isSelected
-              ? theme.primary
-              : plan.popular
-                ? theme.reward
-                : theme.border,
+            borderColor: accentBorder,
             borderRadius: theme.cardRadius,
             borderWidth: isSelected ? 2 : 1,
             shadowColor: isSelected ? theme.primary : plan.popular ? theme.reward : "transparent",
           },
         ]}
       >
+        {plan.popular ? (
+          <LinearGradient
+            colors={[theme.reward + "22", "transparent"]}
+            start={{ x: 0, y: 0 }}
+            end={{ x: 1, y: 1 }}
+            style={StyleSheet.absoluteFillObject}
+          />
+        ) : null}
+
         {plan.badge && (
           <View
             style={[
@@ -313,8 +316,9 @@ function PlanCard({
             <Text
               style={{
                 color: theme.text,
-                fontSize: 22,
-                fontWeight: theme.displayWeight,
+                fontSize: 24,
+                fontWeight: "900",
+                letterSpacing: -0.4,
                 textTransform: theme.uppercase ? "uppercase" : "none",
                 fontStyle: theme.italicHeadlines ? "italic" : "normal",
               }}
@@ -326,17 +330,15 @@ function PlanCard({
             </Text>
           </View>
           <View style={{ alignItems: "flex-end" }}>
-            <Text style={[Typography.displayL, { color: theme.text, fontSize: 28 }]}>
+            <Text style={{ ...Typography.displayL, color: theme.text, fontSize: 32, fontWeight: "900" }}>
               ₹{(plan.pricePaise / 100).toLocaleString("en-IN")}
             </Text>
-            <Text style={[Typography.caption, { color: theme.textMuted, marginTop: -2 }]}>
-              one-time
-            </Text>
+            <Text style={[Typography.caption, { color: theme.textMuted, marginTop: -2 }]}>one-time</Text>
           </View>
         </View>
 
         <View style={styles.planMeta}>
-          <Text style={[Typography.mono, { color: theme.primary }]}>
+          <Text style={[Typography.mono, { color: theme.primary, fontSize: 12 }]}>
             {plan.courseSlots} courses · ₹{(plan.perCourse / 100).toLocaleString("en-IN")} per course
           </Text>
         </View>
@@ -344,8 +346,8 @@ function PlanCard({
         <View style={styles.perks}>
           {plan.perks.map((p) => (
             <View key={p} style={styles.perkRow}>
-              <Text style={[{ color: theme.primary, marginRight: 8, fontWeight: "800" }]}>✓</Text>
-              <Text style={[Typography.bodyS, { color: theme.text, flex: 1 }]}>{p}</Text>
+              <Text style={[{ color: theme.primary, marginRight: 8, fontWeight: "800", fontSize: 14 }]}>✓</Text>
+              <Text style={[Typography.bodyS, { color: theme.text, flex: 1, lineHeight: 19 }]}>{p}</Text>
             </View>
           ))}
         </View>
@@ -359,13 +361,21 @@ const styles = StyleSheet.create({
   scroll: { padding: Spacing.xl, paddingBottom: Spacing.xxxl },
   headerRow: { flexDirection: "row", justifyContent: "space-between", alignItems: "center" },
 
+  hero: { marginTop: Spacing.xl },
+  heroEyebrow: {
+    ...Typography.terminal,
+    fontSize: 11,
+    textShadowOffset: { width: 0, height: 0 },
+    textShadowRadius: 6,
+  },
+
   roi: {
-    marginTop: Spacing.lg,
+    marginTop: Spacing.xl,
     padding: Spacing.lg,
     borderWidth: 1,
     shadowOffset: { width: 0, height: 0 },
-    shadowOpacity: 0.45,
-    shadowRadius: 22,
+    shadowOpacity: 0.5,
+    shadowRadius: 24,
   },
   eyebrow: {
     ...Typography.terminal,
@@ -381,33 +391,23 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     marginTop: Spacing.md,
   },
-  planChip: {
-    flex: 1,
-    paddingVertical: 8,
-    alignItems: "center",
-    borderRadius: 999,
-  },
+  planChip: { flex: 1, paddingVertical: 8, alignItems: "center", borderRadius: 999 },
 
-  stepRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    marginTop: Spacing.md,
-    gap: Spacing.sm,
-  },
+  stepRow: { flexDirection: "row", alignItems: "center", marginTop: Spacing.md, gap: Spacing.sm },
   stepBtn: {
-    width: 32, height: 32,
+    width: 36, height: 36,
     alignItems: "center", justifyContent: "center",
-    borderRadius: 8,
+    borderRadius: 12,
     borderWidth: 1,
   },
   stepValue: {
     ...Typography.mono,
-    fontSize: 18,
+    fontSize: 20,
     fontWeight: "800",
-    minWidth: 28,
+    minWidth: 32,
     textAlign: "center",
     textShadowOffset: { width: 0, height: 0 },
-    textShadowRadius: 6,
+    textShadowRadius: 8,
   },
 
   mathRow: {
@@ -417,8 +417,10 @@ const styles = StyleSheet.create({
     paddingTop: Spacing.md,
     marginTop: Spacing.md,
     borderTopWidth: 1,
+    gap: 6,
   },
   mathCol: { alignItems: "center" },
+  mathVal: { ...Typography.titleM, fontWeight: "800" },
 
   sectionH: {
     ...Typography.terminal,
@@ -430,6 +432,7 @@ const styles = StyleSheet.create({
 
   planCard: {
     padding: Spacing.lg,
+    paddingTop: Spacing.lg + 4,
     overflow: "hidden",
     shadowOffset: { width: 0, height: 0 },
     shadowOpacity: 0.4,
@@ -439,9 +442,9 @@ const styles = StyleSheet.create({
     position: "absolute",
     top: 0,
     right: 0,
-    paddingHorizontal: 12,
-    paddingVertical: 4,
-    borderBottomLeftRadius: 12,
+    paddingHorizontal: 14,
+    paddingVertical: 5,
+    borderBottomLeftRadius: 14,
   },
   planHead: { flexDirection: "row", alignItems: "flex-start" },
   planMeta: { marginTop: Spacing.sm, paddingBottom: Spacing.sm },
