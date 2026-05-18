@@ -37,7 +37,11 @@ export default function Welcome() {
       if (error) throw error;
       if (!data?.url) throw new Error("No OAuth URL returned by Supabase.");
 
-      const result = await WebBrowser.openAuthSessionAsync(data.url, redirectTo);
+      const result = await WebBrowser.openAuthSessionAsync(data.url, redirectTo, {
+        // Skips the "wants to use <domain> to Sign In" iOS prompt.
+        // We don't share cookies with Safari, which is the right default for OAuth.
+        preferEphemeralSession: true,
+      });
       if (result.type !== "success" || !result.url) return;
 
       // Pull tokens out of the redirect URL and hand to Supabase.
