@@ -53,8 +53,15 @@ export default function RootLayout() {
   const [montageDone, setMontageDone] = useState(false);
   const [splashDone, setSplashDone] = useState(false);
 
-  const onAnimatedReady = useCallback(() => {
+  // Hide the native iOS splash as soon as JS is ready, so our JS-side
+  // ThemeMontageSplash is visible from the very first frame instead of
+  // hiding behind the native splash until AnimatedSplash mounts.
+  useEffect(() => {
     SplashScreen.hideAsync().catch(() => undefined);
+  }, []);
+
+  const onAnimatedReady = useCallback(() => {
+    // No-op now; native splash is already gone. Kept for backwards-compat.
   }, []);
 
   return (
