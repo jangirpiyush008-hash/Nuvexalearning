@@ -38,7 +38,10 @@
         "expo-build-properties",
         {
           "ios": {
-            "deploymentTarget": "17.0"
+            "deploymentTarget": "17.0",
+            "extraPods": [
+              { "name": "GoogleSignIn", "version": "~> 9.0" }
+            ]
           }
         }
       ],
