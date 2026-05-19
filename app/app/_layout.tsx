@@ -49,7 +49,7 @@ function RootGate() {
 }
 
 export default function RootLayout() {
-  // Two-stage splash: theme montage (first-launch only) → animated splash.
+  // Two-stage splash: theme montage (plays every launch) → animated splash.
   const [montageDone, setMontageDone] = useState(false);
   const [splashDone, setSplashDone] = useState(false);
 
@@ -65,7 +65,7 @@ export default function RootLayout() {
             <StatusBar style="light" />
             <RootGate />
 
-            {/* First-launch montage. Self-skips after first run via stored flag. */}
+            {/* Theme montage — plays every launch. */}
             {!montageDone && (
               <ThemeMontageSplash onFinish={() => setMontageDone(true)} />
             )}

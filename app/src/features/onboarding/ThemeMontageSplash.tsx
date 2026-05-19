@@ -11,11 +11,9 @@ import Animated, {
 import Svg, { Path } from "react-native-svg";
 import { LinearGradient } from "expo-linear-gradient";
 import * as Haptics from "expo-haptics";
-import { SecureStorage } from "@/core/storage/secureStore";
 import { THEMES, THEME_ORDER } from "@/themes/themes";
 
 const { width, height } = Dimensions.get("window");
-const FLAG_KEY = "nuvexa.firstLaunch.v2.done";
 
 const FLASH_MS = 220;          // each theme card visible for this long
 const STATIC_MS = 800;          // final hold on "ALL THEMES" composite before fade
@@ -28,26 +26,9 @@ const STATIC_MS = 800;          // final hold on "ALL THEMES" composite before f
  * the regular AnimatedSplash without delay.
  */
 export function ThemeMontageSplash({ onFinish }: { onFinish: () => void }) {
-  const [phase, setPhase] = useState<"checking" | "playing" | "done">("checking");
+  const [phase, setPhase] = useState<"playing" | "done">("playing");
   const [idx, setIdx] = useState(0);
   const containerOpacity = useSharedValue(1);
-
-  // Check first-launch flag
-  useEffect(() => {
-    SecureStorage.get(FLAG_KEY)
-      .then((v) => {
-        if (v === "1") {
-          // already shown before — skip entirely
-          setPhase("done");
-          onFinish();
-        } else {
-          setPhase("playing");
-        }
-      })
-      .catch(() => {
-        setPhase("playing");
-      });
-  }, []);
 
   // Drive the strobe cycle
   useEffect(() => {
@@ -86,18 +67,13 @@ export function ThemeMontageSplash({ onFinish }: { onFinish: () => void }) {
     };
   }, [phase]);
 
-  const markDone = async () => {
-    try {
-      await SecureStorage.set(FLAG_KEY, "1");
-    } catch {
-      /* swallow */
-    }
+  const markDone = () => {
     onFinish();
   };
 
   const containerStyle = useAnimatedStyle(() => ({ opacity: containerOpacity.value }));
 
-  if (phase === "checking" || phase === "done") return null;
+  if (phase === "done") return null;
 
   const currentTheme = THEMES[THEME_ORDER[Math.min(idx, THEME_ORDER.length - 1)]];
   const isFinal = idx >= THEME_ORDER.length - 1;

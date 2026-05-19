@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { View, Text, StyleSheet, Dimensions, Alert } from "react-native";
+import { View, Text, StyleSheet, Dimensions, Alert, Pressable } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useRouter } from "expo-router";
 import {
@@ -12,6 +12,8 @@ import { NeonN, NuvexaButton, Spacing, TerminalLabel, Typography } from "@/desig
 import { supabase, supabaseConfigured } from "@/core/supabase/client";
 import { useTheme } from "@/themes/ThemeProvider";
 import { ThemeOverlay } from "@/themes/ThemeOverlay";
+import { THEMES, THEME_ORDER } from "@/themes/themes";
+import * as Haptics from "expo-haptics";
 
 const { width } = Dimensions.get("window");
 
@@ -23,8 +25,13 @@ const WEB_CLIENT_ID = process.env.EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID;
 
 export default function Welcome() {
   const router = useRouter();
-  const { theme } = useTheme();
+  const { theme, themeId, setTheme } = useTheme();
   const [loading, setLoading] = useState(false);
+
+  const onPickTheme = (id: typeof THEME_ORDER[number]) => {
+    Haptics.selectionAsync().catch(() => undefined);
+    setTheme(id).catch(() => undefined);
+  };
 
   useEffect(() => {
     if (!WEB_CLIENT_ID) return;
@@ -138,6 +145,48 @@ export default function Welcome() {
         </View>
 
         <View style={styles.actions}>
+          {/* Theme picker — chips to preview & commit before signup */}
+          <Text style={[Typography.terminal, styles.themeRowLabel, { color: theme.textMuted }]}>
+            $ PICK_YOUR_VIBE
+          </Text>
+          <View style={styles.themeRow}>
+            {THEME_ORDER.map((id) => {
+              const t = THEMES[id];
+              const active = themeId === id;
+              return (
+                <Pressable
+                  key={id}
+                  onPress={() => onPickTheme(id)}
+                  style={[
+                    styles.themeChip,
+                    {
+                      borderColor: active ? t.primary : theme.border,
+                      backgroundColor: active ? t.primary + "22" : "transparent",
+                      shadowColor: active ? t.primary : "transparent",
+                    },
+                  ]}
+                >
+                  <View
+                    style={[
+                      styles.themeDot,
+                      { backgroundColor: t.primary, shadowColor: t.primary },
+                    ]}
+                  />
+                  <Text
+                    style={[
+                      Typography.caption,
+                      { color: active ? t.primary : theme.textSubtle, fontWeight: "700", fontSize: 10 },
+                    ]}
+                    numberOfLines={1}
+                  >
+                    {t.name.toUpperCase()}
+                  </Text>
+                </Pressable>
+              );
+            })}
+          </View>
+
+          <View style={{ height: Spacing.md }} />
           <NuvexaButton
             label={loading ? "Opening Google…" : "Continue with Google"}
             onPress={signInWithGoogle}
@@ -190,6 +239,37 @@ const styles = StyleSheet.create({
     paddingHorizontal: Spacing.lg,
   },
   actions: { paddingBottom: Spacing.xl },
+  themeRowLabel: {
+    fontSize: 10,
+    textAlign: "center",
+    marginBottom: 8,
+    letterSpacing: 1.6,
+  },
+  themeRow: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    gap: 4,
+  },
+  themeChip: {
+    flex: 1,
+    paddingVertical: 8,
+    paddingHorizontal: 4,
+    borderRadius: 999,
+    borderWidth: 1,
+    alignItems: "center",
+    gap: 4,
+    shadowOpacity: 0.4,
+    shadowRadius: 8,
+    shadowOffset: { width: 0, height: 0 },
+  },
+  themeDot: {
+    width: 10,
+    height: 10,
+    borderRadius: 5,
+    shadowOpacity: 0.8,
+    shadowRadius: 6,
+    shadowOffset: { width: 0, height: 0 },
+  },
   bleed: {
     position: "absolute",
     width: width * 0.9,
