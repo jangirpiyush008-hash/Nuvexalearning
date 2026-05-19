@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useCallback } from "react";
+import React, { useEffect, useState } from "react";
 import { Stack, useRouter, useSegments } from "expo-router";
 import { StatusBar } from "expo-status-bar";
 import { View, ActivityIndicator } from "react-native";
@@ -6,7 +6,6 @@ import { SafeAreaProvider } from "react-native-safe-area-context";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import * as SplashScreen from "expo-splash-screen";
 import { AuthProvider, useAuth } from "@/features/auth/AuthProvider";
-import { AnimatedSplash } from "@/features/onboarding/AnimatedSplash";
 import { ThemeMontageSplash } from "@/features/onboarding/ThemeMontageSplash";
 import { ThemeProvider, useTheme } from "@/themes/ThemeProvider";
 
@@ -49,19 +48,15 @@ function RootGate() {
 }
 
 export default function RootLayout() {
-  // Two-stage splash: theme montage (plays every launch) → animated splash.
+  // Single splash: the theme montage. AnimatedSplash was retired because it
+  // played AFTER the montage and effectively replayed a single-theme version
+  // of the splash, which felt repetitive.
   const [montageDone, setMontageDone] = useState(false);
-  const [splashDone, setSplashDone] = useState(false);
 
-  // Hide the native iOS splash as soon as JS is ready, so our JS-side
-  // ThemeMontageSplash is visible from the very first frame instead of
-  // hiding behind the native splash until AnimatedSplash mounts.
+  // Hide the native iOS splash as soon as JS is ready so the JS-side
+  // montage is visible from the very first frame.
   useEffect(() => {
     SplashScreen.hideAsync().catch(() => undefined);
-  }, []);
-
-  const onAnimatedReady = useCallback(() => {
-    // No-op now; native splash is already gone. Kept for backwards-compat.
   }, []);
 
   return (
@@ -72,17 +67,8 @@ export default function RootLayout() {
             <StatusBar style="light" />
             <RootGate />
 
-            {/* Theme montage — plays every launch. */}
             {!montageDone && (
               <ThemeMontageSplash onFinish={() => setMontageDone(true)} />
-            )}
-
-            {/* Theme-aware animated splash. Mounts after montage finishes. */}
-            {montageDone && !splashDone && (
-              <AnimatedSplash
-                onFinish={() => setSplashDone(true)}
-                onReady={onAnimatedReady}
-              />
             )}
           </AuthProvider>
         </ThemeProvider>
