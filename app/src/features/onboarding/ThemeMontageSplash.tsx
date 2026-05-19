@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useRef } from "react";
-import { View, Text, StyleSheet, Dimensions } from "react-native";
+import { View, Text, StyleSheet } from "react-native";
 import Animated, {
   useSharedValue,
   useAnimatedStyle,
@@ -17,7 +17,6 @@ import * as Haptics from "expo-haptics";
 import { Audio } from "expo-av";
 import { THEMES, THEME_ORDER } from "@/themes/themes";
 
-const { width } = Dimensions.get("window");
 
 const FLASH_MS = 560; // each verb visible for this long
 const FINALE_MS = 1400; // wordmark + pulse hold
@@ -282,31 +281,23 @@ function FinaleFrame({
 
   return (
     <View style={styles.finale}>
-      {/* Background rainbow glow — all 5 colors radial */}
-      <Animated.View style={[styles.rainbowGlow, wordmarkStyle]}>
-        <LinearGradient
-          colors={[
-            "transparent",
-            "#00E37822",
-            "#FFD93022",
-            "#FFB22433",
-            "#FF3D9322",
-            "#7C4DFF22",
-            "transparent",
-          ]}
-          start={{ x: 0, y: 0.5 }}
-          end={{ x: 1, y: 0.5 }}
-          style={{ width: width * 1.5, height: 240 }}
-        />
+      {/* Soft radial glow behind everything */}
+      <Animated.View style={[styles.radialGlowWrap, wordmarkStyle]} pointerEvents="none">
+        <View style={[styles.colorBlob, { backgroundColor: "#00E378", top: -40, left: -20 }]} />
+        <View style={[styles.colorBlob, { backgroundColor: "#FFD930", top: 60, right: -30 }]} />
+        <View style={[styles.colorBlob, { backgroundColor: "#FF3D93", bottom: 40, left: -10 }]} />
+        <View style={[styles.colorBlob, { backgroundColor: "#7C4DFF", bottom: -20, right: -10 }]} />
+        <View style={[styles.colorBlob, { backgroundColor: "#FFB224", top: 10, left: 80 }]} />
       </Animated.View>
 
-      {/* Pulsing rings */}
+      {/* Pulsing concentric rings */}
       <Animated.View style={[styles.ring, ring1Style]} />
       <Animated.View style={[styles.ring, ring2Style]} />
 
+      {/* Centered logo group with breathing room */}
       <Animated.View style={[styles.coreContainer, wordmarkStyle]}>
-        {/* Single big rainbow N */}
-        <RainbowN size={130} />
+        <RainbowN size={120} />
+        <View style={{ height: 28 }} />
         <Text style={styles.wordmark}>
           nuvexa<Text style={styles.wordmarkSub}>.learning</Text>
         </Text>
@@ -370,32 +361,46 @@ const styles = StyleSheet.create({
   },
 
   finale: { ...StyleSheet.absoluteFillObject, alignItems: "center", justifyContent: "center" },
-  rainbowGlow: { position: "absolute", alignItems: "center", justifyContent: "center" },
+  radialGlowWrap: {
+    position: "absolute",
+    width: 320,
+    height: 320,
+    alignItems: "center",
+    justifyContent: "center",
+    opacity: 0.55,
+  },
+  colorBlob: {
+    position: "absolute",
+    width: 180,
+    height: 180,
+    borderRadius: 90,
+    opacity: 0.32,
+  },
   ring: {
     position: "absolute",
-    width: 200,
-    height: 200,
-    borderRadius: 100,
-    borderWidth: 2,
-    borderColor: "#FFFFFF",
+    width: 240,
+    height: 240,
+    borderRadius: 120,
+    borderWidth: 1.5,
+    borderColor: "rgba(255,255,255,0.3)",
   },
-  coreContainer: { alignItems: "center", justifyContent: "center", gap: 18 },
+  coreContainer: { alignItems: "center", justifyContent: "center" },
   wordmark: {
     color: "#FFFFFF",
-    fontSize: 38,
+    fontSize: 32,
     fontWeight: "800",
-    letterSpacing: -0.8,
+    letterSpacing: -0.6,
   },
   wordmarkSub: { color: "#888", fontWeight: "500" },
   eyebrowFinale: {
     position: "absolute",
-    bottom: 140,
+    bottom: 130,
     color: "#FFFFFF",
     fontSize: 11,
     fontWeight: "800",
     letterSpacing: 3,
     fontFamily: "Menlo",
-    opacity: 0.6,
+    opacity: 0.5,
   },
 
   dots: {
